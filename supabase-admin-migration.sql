@@ -37,8 +37,41 @@ CREATE TABLE IF NOT EXISTS public.admin_sessions (
 CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires
   ON public.admin_sessions USING btree (expires_at) TABLESPACE pg_default;
 
--- Disable RLS on admin tables (only accessible via service role key from server)
-ALTER TABLE public.app_settings   DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.admin_sessions DISABLE ROW LEVEL SECURITY;
+-- ─── RLS on app_settings (public read, no client writes) ────────────────────
+
+ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
+
+-- Anyone (anon included) can read — needed for shipping config on the storefront
+DROP POLICY IF EXISTS "app_settings_public_read" ON public.app_settings;
+CREATE POLICY "app_settings_public_read"
+  ON public.app_settings
+  FOR SELECT
+  USING (true);
+
+-- No INSERT/UPDATE/DELETE from the client; service role key (API server) bypasses RLS
+
+-- ─── RLS on admin_sessions (fully locked — service role only) ────────────────
+
+ALTER TABLE public.admin_sessions ENABLE ROW LEVEL SECURITY;
+
+-- Deny every client-side operation; only the server's service role key can access
+DROP POLICY IF EXISTS "admin_sessions_deny_all" ON public.admin_sessions;
+CREATE POLICY "admin_sessions_deny_all"
+  ON public.admin_sessions
+  FOR ALL
+  USING (false);
+
+-- ─── RLS on products: enforce is_active filter at DB level ───────────────────
+
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+
+-- Anon + authenticated users only see active products
+DROP POLICY IF EXISTS "products_active_only" ON public.products;
+CREATE POLICY "products_active_only"
+  ON public.products
+  FOR SELECT
+  USING (is_active = true);
+
+-- Service role (API server) bypasses RLS, so admin routes see all products
 
 -- ─── DONE ────────────────────────────────────────────────────────────────────
