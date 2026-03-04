@@ -6,7 +6,7 @@ export async function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
-// GET /api/products — list products (public)
+// GET /api/products — list products (public, active only)
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const family = url.searchParams.get('family');
@@ -14,7 +14,8 @@ export async function GET(req: NextRequest) {
 
   let query = supabaseAdmin
     .from('products')
-    .select('*')
+    .select('id, name, price, original_price, image, description, fragrance_family, top_notes, middle_notes, base_notes')
+    .eq('is_active', true)
     .order('name', { ascending: true });
 
   if (family) query = query.eq('fragrance_family', family);

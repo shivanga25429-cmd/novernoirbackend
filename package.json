@@ -10,8 +10,11 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.98.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/uuid": "^10.0.0",
+    "bcryptjs": "^3.0.3",
     "crypto": "^1.0.1",
+    "lucide-react": "^0.576.0",
     "next": "16.1.6",
     "razorpay": "^2.9.6",
     "react": "19.2.3",

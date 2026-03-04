@@ -67,8 +67,16 @@ export async function POST(req: NextRequest) {
   const productMap = new Map(products.map((p) => [p.id, p]));
 
   const TAX_RATE = 0.18;
-  const SHIPPING_THRESHOLD = 2000;
-  const SHIPPING_COST = 99;
+
+  // Fetch dynamic shipping config from app_settings
+  const { data: shippingConfig } = await supabaseAdmin
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'shipping')
+    .single();
+
+  const SHIPPING_COST: number = (shippingConfig?.value as { cost: number; free_above: number })?.cost ?? 99;
+  const SHIPPING_THRESHOLD: number = (shippingConfig?.value as { cost: number; free_above: number })?.free_above ?? 2000;
 
   // Build verified order items with server-side prices
   const verifiedItems: OrderItem[] = items.map((item) => {
