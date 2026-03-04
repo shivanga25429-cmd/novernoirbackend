@@ -14,6 +14,7 @@ import {
   X,
   ChevronRight,
 } from 'lucide-react';
+import FloatingCalculator from './components/FloatingCalculator';
 
 // ─── Admin Auth Context ────────────────────────────────────────────────────────
 
@@ -158,6 +159,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           {/* Page content */}
           <main className="flex-1 overflow-y-auto p-6">{children}</main>
         </div>
+
+        {/* Floating calculator — available on every admin page */}
+        <FloatingCalculator />
       </div>
     </AdminAuthContext.Provider>
   );
