@@ -19,3 +19,37 @@ export async function GET(req: NextRequest) {
   if (error) return adminError(error.message, 500);
   return adminSuccess(data ?? []);
 }
+
+// POST /api/admin/products — create a new product
+export async function POST(req: NextRequest) {
+  const auth = requireAdmin(req);
+  if (!auth.ok) return adminError(auth.error!, 401);
+
+  const body = await req.json().catch(() => null);
+  if (!body) return adminError('Invalid JSON');
+
+  const { name, price, original_price, description, fragrance_family, image,
+          top_notes, middle_notes, base_notes, is_active } = body;
+
+  if (!name || price === undefined) return adminError('name and price are required');
+
+  const { data, error } = await supabaseAdmin
+    .from('products')
+    .insert({
+      name: String(name).trim(),
+      price: Number(price),
+      original_price: original_price != null ? Number(original_price) : null,
+      description: description ?? null,
+      fragrance_family: fragrance_family ?? null,
+      image: image ?? null,
+      top_notes: top_notes ?? [],
+      middle_notes: middle_notes ?? [],
+      base_notes: base_notes ?? [],
+      is_active: is_active !== false,
+    })
+    .select()
+    .single();
+
+  if (error) return adminError(error.message, 500);
+  return adminSuccess(data, 201);
+}
