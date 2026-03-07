@@ -7,13 +7,26 @@ import { Search, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 const STATUS_COLORS: Record<string, string> = {
   pending_payment: 'text-yellow-400 bg-yellow-400/10',
   payment_failed: 'text-red-400 bg-red-400/10',
-  confirmed: 'text-blue-400 bg-blue-400/10',
+  confirmed: 'text-green-400 bg-green-400/10',
   processing: 'text-purple-400 bg-purple-400/10',
   shipped: 'text-indigo-400 bg-indigo-400/10',
   out_for_delivery: 'text-orange-400 bg-orange-400/10',
   delivered: 'text-green-400 bg-green-400/10',
   cancelled: 'text-zinc-400 bg-zinc-400/10',
   refunded: 'text-zinc-400 bg-zinc-400/10',
+};
+
+const STATUS_DISPLAY: Record<string, string> = {
+  all: 'All',
+  pending_payment: 'Payment Pending',
+  payment_failed: 'Payment Failed',
+  confirmed: 'Payment Received',
+  processing: 'Processing',
+  shipped: 'Shipped',
+  out_for_delivery: 'Out for Delivery',
+  delivered: 'Delivered',
+  cancelled: 'Cancelled',
+  refunded: 'Refunded',
 };
 
 const ALL_STATUSES = [
@@ -84,7 +97,7 @@ export default function AdminOrders() {
           className="bg-zinc-900 border border-zinc-700 text-zinc-100 rounded px-3 py-2 text-sm focus:outline-none focus:border-amber-400"
         >
           {ALL_STATUSES.map((s) => (
-            <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
+            <option key={s} value={s}>{STATUS_DISPLAY[s] ?? s.replace(/_/g, ' ')}</option>
           ))}
         </select>
       </div>
@@ -133,7 +146,7 @@ export default function AdminOrders() {
                     </td>
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[order.status] ?? 'bg-zinc-800'}`}>
-                        {order.status.replace(/_/g, ' ')}
+                        {STATUS_DISPLAY[order.status] ?? order.status.replace(/_/g, ' ')}
                       </span>
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-zinc-400">

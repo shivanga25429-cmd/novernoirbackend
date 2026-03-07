@@ -46,8 +46,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 // ─── Status ordering ──────────────────────────────────────────────────────────
 
 const STATUS_ORDER = [
-  'pending_payment',
-  'payment_failed',
   'confirmed',
   'processing',
   'shipped',
@@ -58,7 +56,7 @@ const STATUS_ORDER = [
 const STATUS_LABELS: Record<string, string> = {
   pending_payment: 'Payment Pending',
   payment_failed: 'Payment Failed',
-  confirmed: 'Order Confirmed',
+  confirmed: 'Payment Received',
   processing: 'Processing',
   shipped: 'Shipped',
   out_for_delivery: 'Out for Delivery',
@@ -70,7 +68,7 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_DESCRIPTIONS: Record<string, string> = {
   pending_payment: 'Waiting for payment confirmation.',
   payment_failed: 'Payment was not successful.',
-  confirmed: 'Your order has been confirmed and will be processed shortly.',
+  confirmed: 'Payment received. Your order has been confirmed and will be processed shortly.',
   processing: 'We are packing your items.',
   shipped: 'Your order is on its way!',
   out_for_delivery: 'Your order is out for delivery today.',

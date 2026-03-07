@@ -13,13 +13,25 @@ const ALL_STATUSES = [
 const STATUS_COLORS: Record<string, string> = {
   pending_payment: 'text-yellow-400',
   payment_failed: 'text-red-400',
-  confirmed: 'text-blue-400',
+  confirmed: 'text-green-400',
   processing: 'text-purple-400',
   shipped: 'text-indigo-400',
   out_for_delivery: 'text-orange-400',
   delivered: 'text-green-400',
   cancelled: 'text-zinc-400',
   refunded: 'text-zinc-400',
+};
+
+const STATUS_DISPLAY: Record<string, string> = {
+  pending_payment: 'Payment Pending',
+  payment_failed: 'Payment Failed',
+  confirmed: 'Payment Received',
+  processing: 'Processing',
+  shipped: 'Shipped',
+  out_for_delivery: 'Out for Delivery',
+  delivered: 'Delivered',
+  cancelled: 'Cancelled',
+  refunded: 'Refunded',
 };
 
 interface OrderDetail {
@@ -106,8 +118,8 @@ export default function AdminOrderDetail() {
         <h1 className="text-xl font-semibold text-zinc-100">
           Order #{order.id.slice(0, 8).toUpperCase()}
         </h1>
-        <span className={`text-sm font-medium ${STATUS_COLORS[order.status]}`}>
-          {order.status.replace(/_/g, ' ')}
+        <span className={`text-sm font-medium ${STATUS_COLORS[order.status] ?? 'text-zinc-400'}`}>
+          {STATUS_DISPLAY[order.status] ?? order.status.replace(/_/g, ' ')}
         </span>
       </div>
 
@@ -123,7 +135,7 @@ export default function AdminOrderDetail() {
               className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 rounded px-3 py-2 text-sm focus:outline-none focus:border-amber-400"
             >
               {ALL_STATUSES.map((s) => (
-                <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
+                <option key={s} value={s}>{STATUS_DISPLAY[s] ?? s.replace(/_/g, ' ')}</option>
               ))}
             </select>
           </div>
