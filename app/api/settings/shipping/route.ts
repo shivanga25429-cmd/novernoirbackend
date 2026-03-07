@@ -14,7 +14,7 @@ export async function GET() {
     .single();
 
   if (error || !data) {
-    return successResponse({ cost: 99, free_above: 2000 });
+    return successResponse({ cost: 49, free_above: 2000 });
   }
 
   return successResponse(data.value as { cost: number; free_above: number });

@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS public.app_settings (
 
 -- Insert default shipping settings
 INSERT INTO public.app_settings (key, value) VALUES
-  ('shipping', '{"cost": 99, "free_above": 2000}')
+  ('shipping', '{"cost": 49, "free_above": 2000}')
 ON CONFLICT (key) DO NOTHING;
 
 -- ─── Admin sessions (server-side only, no RLS needed) ───────────────────────

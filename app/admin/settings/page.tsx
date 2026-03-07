@@ -10,7 +10,7 @@ interface ShippingConfig {
 
 export default function AdminSettings() {
   const { token } = useAdminAuth();
-  const [shipping, setShipping] = useState<ShippingConfig>({ cost: 99, free_above: 2000 });
+  const [shipping, setShipping] = useState<ShippingConfig>({ cost: 49, free_above: 2000 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');

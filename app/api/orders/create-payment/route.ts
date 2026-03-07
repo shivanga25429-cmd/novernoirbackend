@@ -66,8 +66,6 @@ export async function POST(req: NextRequest) {
 
   const productMap = new Map(products.map((p) => [p.id, p]));
 
-  const TAX_RATE = 0.18;
-
   // Fetch dynamic shipping config from app_settings
   const { data: shippingConfig } = await supabaseAdmin
     .from('app_settings')
@@ -75,7 +73,7 @@ export async function POST(req: NextRequest) {
     .eq('key', 'shipping')
     .single();
 
-  const SHIPPING_COST: number = (shippingConfig?.value as { cost: number; free_above: number })?.cost ?? 99;
+  const SHIPPING_COST: number = (shippingConfig?.value as { cost: number; free_above: number })?.cost ?? 49;
   const SHIPPING_THRESHOLD: number = (shippingConfig?.value as { cost: number; free_above: number })?.free_above ?? 2000;
 
   // Build verified order items with server-side prices
@@ -92,7 +90,7 @@ export async function POST(req: NextRequest) {
   });
 
   const subtotal = verifiedItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const tax = parseFloat((subtotal * TAX_RATE).toFixed(2));
+  const tax = 0;
   const shipping = subtotal > SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
   const total = parseFloat((subtotal + tax + shipping).toFixed(2));
   const amountInPaise = Math.round(total * 100); // Razorpay uses smallest currency unit

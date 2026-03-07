@@ -187,7 +187,6 @@ export default function AdminOrderDetail() {
         </div>
         <div className="px-5 py-3 border-t border-zinc-800 space-y-1 text-sm">
           <div className="flex justify-between text-zinc-500"><span>Subtotal</span><span>₹{order.subtotal}</span></div>
-          <div className="flex justify-between text-zinc-500"><span>Tax</span><span>₹{order.tax}</span></div>
           <div className="flex justify-between text-zinc-500"><span>Shipping</span><span>{order.shipping === 0 ? 'Free' : `₹${order.shipping}`}</span></div>
           <div className="flex justify-between font-semibold text-zinc-100 pt-1 border-t border-zinc-800"><span>Total</span><span>₹{order.total}</span></div>
         </div>
