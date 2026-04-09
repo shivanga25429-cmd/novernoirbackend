@@ -12,6 +12,7 @@ interface Product {
   fragrance_family: string | null;
   image: string | null;
   is_active: boolean;
+  is_out_of_stock: boolean;
 }
 
 function discountPct(original: number | null, selling: number): string {
@@ -31,6 +32,7 @@ function ProductRow({ product, token, onUpdate }: {
     original_price: product.original_price != null ? String(product.original_price) : '',
     description: product.description ?? '',
     is_active: product.is_active,
+    is_out_of_stock: product.is_out_of_stock,
   });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
@@ -44,6 +46,7 @@ function ProductRow({ product, token, onUpdate }: {
       original_price: form.original_price ? parseFloat(form.original_price) : null,
       description: form.description,
       is_active: form.is_active,
+      is_out_of_stock: form.is_out_of_stock,
     };
     const res = await fetch(`/api/admin/products/${product.id}`, {
       method: 'PUT',
@@ -92,6 +95,11 @@ function ProductRow({ product, token, onUpdate }: {
               <span className={`text-xs px-2 py-0.5 rounded-full ${product.is_active ? 'bg-green-400/10 text-green-400' : 'bg-zinc-700 text-zinc-400'}`}>
                 {product.is_active ? 'Active' : 'Hidden'}
               </span>
+              {product.is_out_of_stock && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-400">
+                  Out of stock
+                </span>
+              )}
               <button
                 onClick={() => setEditing((e) => !e)}
                 className="text-xs text-amber-400 hover:underline"
@@ -161,17 +169,29 @@ function ProductRow({ product, token, onUpdate }: {
           </div>
 
           <div className="flex items-center justify-between">
-            <button
-              onClick={() => setForm((f) => ({ ...f, is_active: !f.is_active }))}
-              className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded border transition-colors ${
-                form.is_active
-                  ? 'border-green-500/40 text-green-400 bg-green-500/10 hover:bg-green-500/20'
-                  : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
-              }`}
-            >
-              {form.is_active ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-              {form.is_active ? 'Visible to customers' : 'Hidden from shop'}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setForm((f) => ({ ...f, is_active: !f.is_active }))}
+                className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded border transition-colors ${
+                  form.is_active
+                    ? 'border-green-500/40 text-green-400 bg-green-500/10 hover:bg-green-500/20'
+                    : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                }`}
+              >
+                {form.is_active ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                {form.is_active ? 'Visible to customers' : 'Hidden from shop'}
+              </button>
+              <button
+                onClick={() => setForm((f) => ({ ...f, is_out_of_stock: !f.is_out_of_stock }))}
+                className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded border transition-colors ${
+                  form.is_out_of_stock
+                    ? 'border-red-500/40 text-red-400 bg-red-500/10 hover:bg-red-500/20'
+                    : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                }`}
+              >
+                {form.is_out_of_stock ? 'Out of stock' : 'In stock'}
+              </button>
+            </div>
 
             <div className="flex items-center gap-3">
               {msg && <span className={`text-xs ${msg.startsWith('✓') ? 'text-green-400' : 'text-red-400'}`}>{msg}</span>}
@@ -201,6 +221,7 @@ export default function AdminProducts() {
     fragrance_family: '', image: '',
     top_notes: '', middle_notes: '', base_notes: '',
     is_active: true,
+    is_out_of_stock: false,
   });
   const [adding, setAdding] = useState(false);
   const [addMsg, setAddMsg] = useState('');
@@ -234,12 +255,13 @@ export default function AdminProducts() {
         middle_notes: addForm.middle_notes ? addForm.middle_notes.split(',').map((s) => s.trim()).filter(Boolean) : [],
         base_notes: addForm.base_notes ? addForm.base_notes.split(',').map((s) => s.trim()).filter(Boolean) : [],
         is_active: addForm.is_active,
+        is_out_of_stock: addForm.is_out_of_stock,
       }),
     });
     const json = await res.json();
     if (json.success) {
       setProducts((prev) => [json.data, ...prev]);
-      setAddForm({ name: '', price: '', original_price: '', description: '', fragrance_family: '', image: '', top_notes: '', middle_notes: '', base_notes: '', is_active: true });
+      setAddForm({ name: '', price: '', original_price: '', description: '', fragrance_family: '', image: '', top_notes: '', middle_notes: '', base_notes: '', is_active: true, is_out_of_stock: false });
       setShowAdd(false);
       setAddMsg('');
     } else {
@@ -318,15 +340,25 @@ export default function AdminProducts() {
             </div>
           </div>
           <div className="flex items-center justify-between">
-            <button
-              onClick={() => setAddForm((f) => ({ ...f, is_active: !f.is_active }))}
-              className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded border transition-colors ${
-                addForm.is_active ? 'border-green-500/40 text-green-400 bg-green-500/10 hover:bg-green-500/20' : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
-              }`}
-            >
-              {addForm.is_active ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-              {addForm.is_active ? 'Visible in shop' : 'Hidden from shop'}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setAddForm((f) => ({ ...f, is_active: !f.is_active }))}
+                className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded border transition-colors ${
+                  addForm.is_active ? 'border-green-500/40 text-green-400 bg-green-500/10 hover:bg-green-500/20' : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                }`}
+              >
+                {addForm.is_active ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                {addForm.is_active ? 'Visible in shop' : 'Hidden from shop'}
+              </button>
+              <button
+                onClick={() => setAddForm((f) => ({ ...f, is_out_of_stock: !f.is_out_of_stock }))}
+                className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded border transition-colors ${
+                  addForm.is_out_of_stock ? 'border-red-500/40 text-red-400 bg-red-500/10 hover:bg-red-500/20' : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+                }`}
+              >
+                {addForm.is_out_of_stock ? 'Out of stock' : 'In stock'}
+              </button>
+            </div>
             <div className="flex items-center gap-3">
               {addMsg && <span className={`text-xs ${addMsg.startsWith('✗') ? 'text-red-400' : 'text-green-400'}`}>{addMsg}</span>}
               <button onClick={handleAdd} disabled={adding}

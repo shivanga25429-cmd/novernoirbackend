@@ -9,7 +9,8 @@ ALTER TABLE public.products
   ADD COLUMN IF NOT EXISTS original_price numeric(10,2) NULL,
   -- original_price = "fake MRP" shown as strikethrough
   -- price          = actual selling price (already exists)
-  ADD COLUMN IF NOT EXISTS is_active boolean NOT NULL DEFAULT true;
+  ADD COLUMN IF NOT EXISTS is_active boolean NOT NULL DEFAULT true,
+  ADD COLUMN IF NOT EXISTS is_out_of_stock boolean NOT NULL DEFAULT false;
 
 -- ─── App settings (shipping config, etc.) ────────────────────────────────────
 

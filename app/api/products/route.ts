@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabaseAdmin
     .from('products')
-    .select('id, name, price, original_price, image, description, fragrance_family, top_notes, middle_notes, base_notes')
+    .select('id, name, price, original_price, image, description, fragrance_family, top_notes, middle_notes, base_notes, is_out_of_stock')
     .eq('is_active', true)
     .order('name', { ascending: true });
 

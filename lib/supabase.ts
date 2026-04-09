@@ -60,6 +60,9 @@ export interface DBOrder {
   subtotal: number;
   tax: number;
   shipping: number;
+  discount_amount: number;
+  coupon_id: string | null;
+  coupon_code: string | null;
   total: number;
   status: OrderStatus;
   tracking_id: string | null;

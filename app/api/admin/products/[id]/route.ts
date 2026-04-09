@@ -27,6 +27,7 @@ export async function PUT(
   if (body.description !== undefined) allowed.description = body.description;
   if (body.fragrance_family !== undefined) allowed.fragrance_family = body.fragrance_family;
   if (body.is_active !== undefined) allowed.is_active = Boolean(body.is_active);
+  if (body.is_out_of_stock !== undefined) allowed.is_out_of_stock = Boolean(body.is_out_of_stock);
   if (body.image !== undefined) allowed.image = body.image;
 
   if (Object.keys(allowed).length === 0) return adminError('Nothing to update');

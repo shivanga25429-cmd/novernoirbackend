@@ -9,6 +9,8 @@ import {
   ShoppingCart,
   ShoppingBag,
   Settings,
+  TicketPercent,
+  HelpCircle,
   LogOut,
   Menu,
   X,
@@ -40,9 +42,11 @@ const NAV = [
   { href: '/admin',          label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/orders',   label: 'Orders',    icon: ShoppingCart },
   { href: '/admin/products', label: 'Products',  icon: Package },
+  { href: '/admin/coupons',  label: 'Coupons',   icon: TicketPercent },
   { href: '/admin/carts',    label: 'Carts',     icon: ShoppingBag },
   { href: '/admin/users',    label: 'Users',     icon: Users },
   { href: '/admin/settings', label: 'Settings',  icon: Settings },
+  { href: '/admin/guide',    label: 'Guide',     icon: HelpCircle },
 ];
 
 // ─── Layout ────────────────────────────────────────────────────────────────────

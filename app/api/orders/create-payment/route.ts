@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { razorpay } from '@/lib/razorpay';
 import { requireAuth, errorResponse, successResponse, CORS_HEADERS } from '@/lib/auth';
+import { normalizeCouponCode, validateCouponForItems } from '@/lib/coupons';
 import type { OrderItem } from '@/lib/supabase';
 
 export async function OPTIONS() {
@@ -34,9 +35,10 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body) return errorResponse('Invalid JSON body');
 
-  const { items, address_id, notes } = body as {
+  const { items, address_id, coupon_code, notes } = body as {
     items: OrderItem[];
     address_id: string;
+    coupon_code?: string;
     notes?: string;
   };
 
@@ -59,7 +61,7 @@ export async function POST(req: NextRequest) {
   const productIds = items.map((i) => i.product_id);
   const { data: products, error: prodErr } = await supabaseAdmin
     .from('products')
-    .select('id, name, price, image')
+    .select('id, name, price, image, is_active, is_out_of_stock')
     .in('id', productIds);
 
   if (prodErr || !products) return errorResponse('Could not verify product prices', 500);
@@ -77,22 +79,38 @@ export async function POST(req: NextRequest) {
   const SHIPPING_THRESHOLD: number = (shippingConfig?.value as { cost: number; free_above: number })?.free_above ?? 2000;
 
   // Build verified order items with server-side prices
-  const verifiedItems: OrderItem[] = items.map((item) => {
+  const verifiedItems: OrderItem[] = [];
+  for (const item of items) {
     const product = productMap.get(item.product_id);
-    if (!product) throw new Error(`Product not found: ${item.product_id}`);
-    return {
+    if (!product) return errorResponse(`Product not found: ${item.product_id}`, 400);
+    if (!product.is_active) return errorResponse(`${product.name} is not available`, 400);
+    if (product.is_out_of_stock) return errorResponse(`${product.name} is out of stock`, 400);
+    if (item.quantity <= 0) return errorResponse(`Invalid quantity for ${product.name}`, 400);
+    verifiedItems.push({
       product_id: item.product_id,
       name: product.name,
       price: product.price,
       quantity: item.quantity,
       image: product.image ?? undefined,
-    };
-  });
+    });
+  }
 
   const subtotal = verifiedItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  let discount = 0;
+  let couponId: string | null = null;
+  let couponCode: string | null = null;
+  let couponLocks = false;
+  if (coupon_code?.trim()) {
+    const couponValidation = await validateCouponForItems(user.id, coupon_code, verifiedItems);
+    if (!couponValidation.ok) return errorResponse(couponValidation.error, 400);
+    discount = couponValidation.result.discountAmount;
+    couponId = couponValidation.result.coupon.id;
+    couponCode = normalizeCouponCode(coupon_code);
+    couponLocks = couponValidation.result.coupon.expires_after_use;
+  }
   const tax = 0;
   const shipping = subtotal > SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
-  const total = parseFloat((subtotal + tax + shipping).toFixed(2));
+  const total = parseFloat((subtotal - discount + tax + shipping).toFixed(2));
   const amountInPaise = Math.round(total * 100); // Razorpay uses smallest currency unit
 
   // Create a pending order in DB first
@@ -104,6 +122,9 @@ export async function POST(req: NextRequest) {
       subtotal,
       tax,
       shipping,
+      discount_amount: discount,
+      coupon_id: couponId,
+      coupon_code: couponCode,
       total,
       status: 'pending_payment',
       address_id,
@@ -119,6 +140,28 @@ export async function POST(req: NextRequest) {
   if (orderErr || !orderRecord) {
     console.error('Order DB insert error:', orderErr);
     return errorResponse('Failed to create order', 500);
+  }
+
+  if (couponId && couponCode) {
+    const { error: redemptionError } = await supabaseAdmin
+      .from('coupon_redemptions')
+      .insert({
+        coupon_id: couponId,
+        coupon_code: couponCode,
+        user_id: user.id,
+        order_id: orderRecord.id,
+        discount_amount: discount,
+        locks_coupon: couponLocks,
+        status: 'pending_payment',
+      });
+
+    if (redemptionError) {
+      await supabaseAdmin
+        .from('orders')
+        .update({ status: 'payment_failed', updated_at: new Date().toISOString() })
+        .eq('id', orderRecord.id);
+      return errorResponse('This coupon is no longer available', 409);
+    }
   }
 
   // Create Razorpay order
@@ -140,6 +183,12 @@ export async function POST(req: NextRequest) {
       .from('orders')
       .update({ status: 'payment_failed' })
       .eq('id', orderRecord.id);
+    if (couponId) {
+      await supabaseAdmin
+        .from('coupon_redemptions')
+        .update({ status: 'released', updated_at: new Date().toISOString() })
+        .eq('order_id', orderRecord.id);
+    }
     return errorResponse('Payment gateway error', 502);
   }
 

@@ -48,6 +48,11 @@ export async function POST(req: NextRequest) {
       .update({ status: 'payment_failed', razorpay_payment_id })
       .eq('id', order_id)
       .eq('user_id', user.id);
+    await supabaseAdmin
+      .from('coupon_redemptions')
+      .update({ status: 'released', updated_at: new Date().toISOString() })
+      .eq('order_id', order_id)
+      .eq('user_id', user.id);
 
     return errorResponse('Payment signature verification failed', 400);
   }
@@ -84,6 +89,12 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (updateErr) return errorResponse('Failed to confirm order', 500);
+
+  await supabaseAdmin
+    .from('coupon_redemptions')
+    .update({ status: 'confirmed', updated_at: new Date().toISOString() })
+    .eq('order_id', order_id)
+    .eq('user_id', user.id);
 
   // ── 4. Clear the user's active cart ─────────────────────────────────────────
   await supabaseAdmin

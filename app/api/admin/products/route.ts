@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   if (!body) return adminError('Invalid JSON');
 
   const { name, price, original_price, description, fragrance_family, image,
-          top_notes, middle_notes, base_notes, is_active } = body;
+          top_notes, middle_notes, base_notes, is_active, is_out_of_stock } = body;
 
   if (!name || price === undefined) return adminError('name and price are required');
 
@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
       middle_notes: middle_notes ?? [],
       base_notes: base_notes ?? [],
       is_active: is_active !== false,
+      is_out_of_stock: Boolean(is_out_of_stock),
     })
     .select()
     .single();
